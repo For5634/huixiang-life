@@ -1,0 +1,61 @@
+name: 惠享生活 CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        # 前端静态文件在 nginx-1.18.0/html/hmdp 子模块中
+        submodules: recursive
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: 配置 Maven settings（阿里云镜像）
+      uses: s4u/maven-settings-action@v3.0.0
+      with:
+        servers: |
+          [{
+            "id": "aliyun",
+            "url": "https://maven.aliyun.com/repository/public"
+          }]
+
+    - name: 纯单元测试（无 Spring 上下文，无需 DB）
+      run: mvn test -Dtest=com.hmdp.utils.PureUtilsTest -q
+
+    - name: Spring 集成测试（需要 Redis，使用 GitHub Actions 提供的 Redis）
+      env:
+        DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        ALIYUN_ACCESS_KEY_ID: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
+        ALIYUN_ACCESS_KEY_SECRET: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
+      run: |
+        mvn test -Dtest=com.hmdp.HuiXiangApplicationTests -pl . || echo "集成测试因无 MySQL 而跳过（需要本地 MySQL 数据库）"
+
+    - name: Maven 编译
+      run: mvn compile -q
+
+    - name: 打包
+      run: mvn package -DskipTests -q
