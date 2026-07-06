@@ -13,4 +13,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IBlogCommentsService extends IService<BlogComments> {
 
+    /** 发表评论时同步回写 tb_blog 的 comments 计数字段 */
+    void updateBlogCommentCount(Long blogId);
 }

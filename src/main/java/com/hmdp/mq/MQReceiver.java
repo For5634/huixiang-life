@@ -58,10 +58,11 @@ public class MQReceiver {
         // 幂等 key 设 24 小时 TTL，避免 Redis 内存无限增长
         stringRedisTemplate.expire(ORDER_PROCESSED_KEY + orderId, 24, TimeUnit.HOURS);
 
-        // 2. 一人一单二次校验
+        // 2. 一人一单二次校验（DB 兜底，防止 Lua 脚本与 DB 不一致）
         long count = voucherOrderService.query().eq("user_id", userId).eq("voucher_id", voucherId).count();
         if (count > 0) {
             log.error("该用户已购买过: userId={}, voucherId={}", userId, voucherId);
+            // 已购买：删除幂等 key，避免占用（后续若同 orderId 重投，可重新走流程）
             stringRedisTemplate.opsForSet().remove(ORDER_PROCESSED_KEY + orderId, "1");
             return;
         }
@@ -75,6 +76,7 @@ public class MQReceiver {
                 .update();
         if (!success) {
             log.error("库存不足: voucherId={}", voucherId);
+            // 库存不足：同样释放幂等 key，避免该 orderId 重投时被误吞
             stringRedisTemplate.opsForSet().remove(ORDER_PROCESSED_KEY + orderId, "1");
             return;
         }

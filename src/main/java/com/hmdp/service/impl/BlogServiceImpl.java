@@ -65,13 +65,19 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     }
 
     @Override
-    public Result queryHotBlog(Integer current) {
+    public Result queryHotBlog(Integer current, Integer cityId) {
         // 根据用户查询
         Page<Blog> page = query()
                 .orderByDesc("liked")
                 .page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
         // 获取当前页数据
         List<Blog> records = page.getRecords();
+        // 如果指定了城市，过滤 shop_id >= 1000 的为成都，shop_id < 1000 的为杭州
+        if (cityId != null && cityId == 1) {
+            records = records.stream()
+                    .filter(b -> b.getShopId() != null && b.getShopId() >= 1000)
+                    .collect(Collectors.toList());
+        }
         // 查询用户
         records.forEach(blog -> {
             queryBlogUser(blog);

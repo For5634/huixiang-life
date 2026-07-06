@@ -37,4 +37,28 @@ public class FollowController {
     public Result followCommons(@PathVariable Long id){
         return followService.followCommons(id);
     }
+
+    // 当前用户的关注数（关注了多少人）
+    @GetMapping("/count")
+    public Result followCount() {
+        return followService.followCount();
+    }
+
+    // 当前用户的粉丝数（被多少人关注）
+    @GetMapping("/fans/count")
+    public Result fansCount() {
+        return followService.fansCount();
+    }
+
+    // 当前用户关注的用户列表
+    @GetMapping("/list")
+    public Result followList() {
+        return followService.followList();
+    }
+
+    // 当前用户的粉丝列表
+    @GetMapping("/fans/list")
+    public Result fansList() {
+        return followService.fansList();
+    }
 }

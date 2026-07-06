@@ -54,4 +54,12 @@ public class VoucherController {
     public Result queryVoucherOfShop(@PathVariable("shopId") Long shopId) {
        return voucherService.queryVoucherOfShop(shopId);
     }
+
+    /**
+     * 查询当前所有有效秒杀券（聚合列表，供秒杀专区页）
+     */
+    @GetMapping("/seckill/list")
+    public Result queryAllSeckill() {
+        return voucherService.queryAllSeckill();
+    }
 }

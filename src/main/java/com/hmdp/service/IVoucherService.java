@@ -17,4 +17,7 @@ public interface IVoucherService extends IService<Voucher> {
     Result queryVoucherOfShop(Long shopId);
 
     void addSeckillVoucher(Voucher voucher);
+
+    /** 查询当前所有有效秒杀券（含关联店铺名和库存） */
+    Result queryAllSeckill();
 }

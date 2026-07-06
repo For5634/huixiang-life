@@ -88,8 +88,10 @@ public class BlogController {
 
 
     @GetMapping("/hot")
-    public Result queryHotBlog(@RequestParam(value = "current", defaultValue = "1") Integer current) {
-        return blogService.queryHotBlog(current);
+    public Result queryHotBlog(
+            @RequestParam(value = "current", defaultValue = "1") Integer current,
+            @RequestParam(value = "cityId", required = false) Integer cityId) {
+        return blogService.queryHotBlog(current, cityId);
     }
 
     @GetMapping("/{id}")
